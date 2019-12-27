@@ -150,7 +150,7 @@ class ArticleSearchable extends AbstractSearchable {
     public function __construct(Article $article)
     {
         $this->article = $article;
-        parebt::__construct();
+        parent::__construct();
     }
 
     protected function initMatcherValues(): void
