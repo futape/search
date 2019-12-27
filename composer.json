@@ -1,0 +1,22 @@
+{
+  "name": "futape/search",
+  "description": "An easy to use and extendable search framework",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": "~7.2.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Futape\\Search\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Futape\\Search\\Tests\\Unit\\": "tests/unit/"
+    }
+  }
+}
