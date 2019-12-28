@@ -162,12 +162,20 @@ class Index
      */
     public function getMatching(): array
     {
-        return array_filter(
+        $matching = array_filter(
             $this->getSearchables(),
             function (SearchableInterface $searchable) {
                 return $searchable->getScore() > 0;
             }
         );
+        usort(
+            $matching,
+            function (SearchableInterface $searchable1, SearchableInterface $searchable2) {
+                return $searchable2->getScore() - $searchable1->getScore();
+            }
+        );
+
+        return $matching;
     }
 
     /**

@@ -75,7 +75,6 @@ class IndexTest extends TestCase
             ->addSearchable($searchable)
             ->search('bar');
 
-        $this->assertContains($searchable, $index->getMatching());
         $this->assertSame($index->getSearchables()[0], $searchable);
         $this->assertEquals(3, $index->getSearchables()[0]->getScore());
 
@@ -92,15 +91,35 @@ class IndexTest extends TestCase
             ['foo', 'baz', '**bar**', '**bar**'],
             $index->getSearchables()[0]->getMatcherValue('value2')->getHighlighted()
         );
-
-        $index->search('bam');
-        $this->assertNotContains($searchable, $index->getMatching());
     }
 
     /**
      * @uses \Futape\Search\Matcher\Token\TokenValue
      * @uses \Futape\Search\Matcher\Token\TokenMatcher
      * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\AbstractSearchable
+     */
+    public function testMatchingSearchables()
+    {
+        $searchable1 = self::getAbstractSearchableMock(['value1' => new TokenValue(['foo', 'bar', 'baz'])]);
+        $searchable2 = self::getAbstractSearchableMock(['value1' => new TokenValue(['baz', 'bar', 'bar'])]);
+        $index = (new Index())
+            ->attachMatcher(new TokenMatcher())
+            ->addSearchable($searchable1)
+            ->addSearchable($searchable2)
+            ->search('bar');
+
+        $this->assertSame([$searchable2, $searchable1], $index->getMatching());
+
+        $index->search('foo');
+        $this->assertSame([$searchable1], $index->getMatching());
+
+        $index->search('bam');
+        $this->assertCount(0, $index->getMatching());
+    }
+
+    /**
+     * @uses \Futape\Search\SearchableInterface
      * @uses \Futape\Search\AbstractSearchable
      */
     public function testSearchableFilter()
