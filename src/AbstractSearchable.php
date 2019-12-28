@@ -9,7 +9,7 @@ use Futape\Search\Matcher\AbstractValue;
 abstract class AbstractSearchable implements SearchableInterface
 {
     /** @var AbstractValue[] */
-    protected $matcherValues = [];
+    private $matcherValues = [];
 
     public function __construct()
     {
@@ -19,11 +19,32 @@ abstract class AbstractSearchable implements SearchableInterface
     abstract protected function initMatcherValues(): void;
 
     /**
+     * @param mixed $key
+     * @param AbstractValue $value
+     * @return self
+     */
+    protected function registerMatcherValue($key, AbstractValue $value): self
+    {
+        $this->matcherValues[$key] = $value;
+
+        return $this;
+    }
+
+    /**
      * @return AbstractValue[]
      */
     public function getMatcherValues(): array
     {
         return $this->matcherValues;
+    }
+
+    /**
+     * @param mixed $key
+     * @return AbstractValue|null
+     */
+    public function getMatcherValue($key): ?AbstractValue
+    {
+        return $this->matcherValues[$key] ?? null;
     }
 
     /**

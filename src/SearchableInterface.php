@@ -14,6 +14,12 @@ interface SearchableInterface
     public function getMatcherValues(): array;
 
     /**
+     * @param mixed $key
+     * @return AbstractValue|null
+     */
+    public function getMatcherValue($key): ?AbstractValue;
+
+    /**
      * @return int
      */
     public function getScore(): int;

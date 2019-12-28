@@ -6,12 +6,6 @@ namespace Futape\Search\Matcher;
 
 class AbstractArrayValue extends AbstractValue
 {
-    /** @var array */
-    protected $value;
-
-    /** @var array */
-    protected $highlighted;
-
     /**
      * @param array $value
      */

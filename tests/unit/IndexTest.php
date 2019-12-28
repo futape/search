@@ -63,7 +63,12 @@ class IndexTest extends TestCase
     {
         $value1 = new TokenValue(['foo', 'bar', 'baz']);
         $value2 = new TokenValue(['foo', 'baz', 'bar', 'bar']);
-        $searchable = self::getAbstractSearchableMock([$value1, $value2]);
+        $searchable = self::getAbstractSearchableMock(
+            [
+                'value1' => $value1,
+                'value2' => $value2
+            ]
+        );
         $index = (new Index(new PlainHighlighter()))
             ->attachMatcher(new TokenMatcher())
             ->addSearchable($searchable)
@@ -73,18 +78,18 @@ class IndexTest extends TestCase
         $this->assertSame($index->getSearchables()[0], $searchable);
         $this->assertEquals(3, $index->getSearchables()[0]->getScore());
 
-        $this->assertSame($index->getSearchables()[0]->getMatcherValues()[0], $value1);
-        $this->assertEquals(1, $index->getSearchables()[0]->getMatcherValues()[0]->getScore());
+        $this->assertSame($index->getSearchables()[0]->getMatcherValue('value1'), $value1);
+        $this->assertEquals(1, $index->getSearchables()[0]->getMatcherValue('value1')->getScore());
         $this->assertEquals(
             ['foo', '**bar**', 'baz'],
-            $index->getSearchables()[0]->getMatcherValues()[0]->getHighlighted()
+            $index->getSearchables()[0]->getMatcherValue('value1')->getHighlighted()
         );
 
-        $this->assertSame($index->getSearchables()[0]->getMatcherValues()[1], $value2);
-        $this->assertEquals(2, $index->getSearchables()[0]->getMatcherValues()[1]->getScore());
+        $this->assertSame($index->getSearchables()[0]->getMatcherValue('value2'), $value2);
+        $this->assertEquals(2, $index->getSearchables()[0]->getMatcherValue('value2')->getScore());
         $this->assertEquals(
             ['foo', 'baz', '**bar**', '**bar**'],
-            $index->getSearchables()[0]->getMatcherValues()[1]->getHighlighted()
+            $index->getSearchables()[0]->getMatcherValue('value2')->getHighlighted()
         );
 
         $index->search('bam');
@@ -110,13 +115,23 @@ class IndexTest extends TestCase
             true,
             true,
             true,
-            ['getMatcherValues']
+            ['getMatcherValues', 'getMatcherValue']
         );
         $searchable
             ->expects(self::any())
             ->method('getMatcherValues')
             ->will(
                 self::returnValue($matcherValues)
+            );
+        $searchable
+            ->expects(self::any())
+            ->method('getMatcherValue')
+            ->will(
+                self::returnCallback(
+                    function ($key) use ($matcherValues): ?AbstractValue {
+                        return $matcherValues[$key] ?? null;
+                    }
+                )
             );
 
         return $searchable;

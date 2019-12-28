@@ -2,4 +2,5 @@
   allowing to filter the index objects by type (and by other criteria)
 + [ ] Add sort functionality
 + [x] Filter only matching objects
-+ [ ] Elegant and standardized way to retrieve specific matcher value from a searchable
++ [x] Elegant and standardized way to retrieve specific matcher value from a searchable
++ [ ] Document highlighter forwarding

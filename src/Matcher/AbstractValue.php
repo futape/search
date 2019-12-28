@@ -7,13 +7,13 @@ namespace Futape\Search\Matcher;
 abstract class AbstractValue
 {
     /** @var mixed */
-    protected $value;
+    private $value;
 
     /** @var mixed */
-    protected $highlighted;
+    private $highlighted;
 
     /** @var int */
-    protected $score;
+    private $score;
 
     /**
      * @param mixed $value

@@ -1,7 +1,7 @@
 # futape/search
 
-This framework offers a basic set of utilities for building your search index and search it using various and
-customizable matching strategies.
+This framework offers a basic set of utilities for building your search index and search it using various customizable
+matching strategies.
 
 You are completely free in the choice and the structure of the objects to index.  
 News matchers can be implemented and added in seconds. The same applies to highlighters.
@@ -136,7 +136,8 @@ against the search term by them.
 To create your own searchable, you may either implement the `SearchableInterface` or extend the `AbstractSearchable`
 class.  
 When extending the `AbstractSearchable`, the only method to implement is `initMatcherValues`, which is called by the
-constructor and should populate the `$matcherValues` property. You may do something like below.
+constructor and should populate the matcher values by calling the `registerMatcherValue` method. You may do something
+like below.
 
 ```php
 use Futape\Search\AbstractSearchable;
@@ -155,8 +156,8 @@ class ArticleSearchable extends AbstractSearchable {
 
     protected function initMatcherValues(): void
     {
-        $this->matcherValues['tags'] = new TokenValue($this->article->getTags());
-        $this->matcherValues['categories'] = new TokenValue($this->article->getCategories());
+        $this->registerMatcherValue('tags', new TokenValue($this->article->getTags()));
+        $this->registerMatcherValue('categories', new TokenValue($this->article->getCategories()));
         // ...
     }
     
@@ -195,10 +196,10 @@ $index = (new Index(new PlainHighlighter())
 
 foreach ($index->getSearchables() as $searchable) {
     var_dump($searchable->getScore());
-    var_dump($searchable->getMatcherValues()['tags']->getScore());
-    var_dump($searchable->getMatcherValues()['tags']->getHighlighted());
-    var_dump($searchable->getMatcherValues()['categories']->getScore());
-    var_dump($searchable->getMatcherValues()['categories']->getHighlighted());
+    var_dump($searchable->getMatcherValue('tags')->getScore());
+    var_dump($searchable->getMatcherValue('tags')->getHighlighted());
+    var_dump($searchable->getMatcherValue('categories')->getScore());
+    var_dump($searchable->getMatcherValue('categories')->getHighlighted());
 }
 
 /*

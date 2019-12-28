@@ -13,7 +13,7 @@ abstract class AbstractMatcher
     const SUPPORTED_VALUE = '';
 
     /** @var HighlighterInterface */
-    protected $highlighter;
+    private $highlighter;
 
     public function __construct()
     {

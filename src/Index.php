@@ -12,13 +12,13 @@ use Futape\Search\Matcher\AbstractValue;
 class Index
 {
     /** @var SearchableInterface[] */
-    protected $searchables = [];
+    private $searchables = [];
 
     /** @var AbstractMatcher[] */
-    protected $matchers = [];
+    private $matchers = [];
 
     /** @var HighlighterInterface */
-    protected $highlighter;
+    private $highlighter;
 
     /**
      * @param HighlighterInterface|null $highlighter
