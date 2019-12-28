@@ -3,4 +3,4 @@
 + [ ] Add sort functionality
 + [x] Filter only matching objects
 + [x] Elegant and standardized way to retrieve specific matcher value from a searchable
-+ [ ] Document highlighter forwarding
++ [x] Document highlighter forwarding
