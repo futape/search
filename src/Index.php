@@ -126,6 +126,19 @@ class Index
     }
 
     /**
+     * @return SearchableInterface[]
+     */
+    public function getMatching(): array
+    {
+        return array_filter(
+            $this->getSearchables(),
+            function (SearchableInterface $searchable) {
+                return $searchable->getScore() > 0;
+            }
+        );
+    }
+
+    /**
      * @param AbstractValue $value
      * @return AbstractMatcher|null
      */

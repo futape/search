@@ -69,6 +69,7 @@ class IndexTest extends TestCase
             ->addSearchable($searchable)
             ->search('bar');
 
+        $this->assertContains($searchable, $index->getMatching());
         $this->assertSame($index->getSearchables()[0], $searchable);
         $this->assertEquals(3, $index->getSearchables()[0]->getScore());
 
@@ -85,6 +86,9 @@ class IndexTest extends TestCase
             ['foo', 'baz', '**bar**', '**bar**'],
             $index->getSearchables()[0]->getMatcherValues()[1]->getHighlighted()
         );
+
+        $index->search('bam');
+        $this->assertNotContains($searchable, $index->getMatching());
     }
 
     /**
