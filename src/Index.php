@@ -20,6 +20,9 @@ class Index
     /** @var HighlighterInterface */
     private $highlighter;
 
+    /** @var string|null */
+    private $searchableFilter;
+
     /**
      * @param HighlighterInterface|null $highlighter
      */
@@ -33,6 +36,16 @@ class Index
      */
     public function getSearchables(): array
     {
+        $searchableFilter = $this->getSearchableFilter();
+        if ($searchableFilter !== null) {
+            return array_filter(
+                $this->searchables,
+                function ($searchable) use ($searchableFilter) {
+                    return $searchable instanceof $searchableFilter;
+                }
+            );
+        }
+
         return $this->searchables;
     }
 
@@ -102,6 +115,25 @@ class Index
     public function setHighlighter(HighlighterInterface $highlighter): self
     {
         $this->highlighter = $highlighter;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getSearchableFilter(): ?string
+    {
+        return $this->searchableFilter;
+    }
+
+    /**
+     * @param string|null $searchableFilter
+     * @return self
+     */
+    public function setSearchableFilter(?string $searchableFilter): self
+    {
+        $this->searchableFilter = $searchableFilter;
 
         return $this;
     }

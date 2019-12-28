@@ -10,6 +10,7 @@ use Futape\Search\Index;
 use Futape\Search\Matcher\AbstractValue;
 use Futape\Search\Matcher\Token\TokenMatcher;
 use Futape\Search\Matcher\Token\TokenValue;
+use Futape\Search\SearchableInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -94,6 +95,33 @@ class IndexTest extends TestCase
 
         $index->search('bam');
         $this->assertNotContains($searchable, $index->getMatching());
+    }
+
+    /**
+     * @uses \Futape\Search\Matcher\Token\TokenValue
+     * @uses \Futape\Search\Matcher\Token\TokenMatcher
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\AbstractSearchable
+     */
+    public function testSearchableFilter()
+    {
+        $searchable = self::getAbstractSearchableMock([]);
+        $index = (new Index())
+            ->addSearchable($searchable);
+
+        $this->assertContains($searchable, $index->getSearchables());
+
+        $index->setSearchableFilter(get_class($searchable));
+        $this->assertContains($searchable, $index->getSearchables());
+
+        $index->setSearchableFilter('\Foo\Bar\MySearchable');
+        $this->assertNotContains($searchable, $index->getSearchables());
+
+        $index->setSearchableFilter(SearchableInterface::class);
+        $this->assertContains($searchable, $index->getSearchables());
+
+        $index->setSearchableFilter(null);
+        $this->assertContains($searchable, $index->getSearchables());
     }
 
     /**

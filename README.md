@@ -19,8 +19,8 @@ composer require futape/search
 Matchers are components for matching an indexed value against a search term. The type of the value and the search
 term is technically completely free. However, different concrete matchers may specify or force a type.  
 Every matcher has a highlighter attached to it. By default it's initialized with a `DummyHighlighter`. As soon as a
-matcher is attached to the `Index`, the index's highlighter is forwarded to the matcher and is reset when detaching the
-matcher from the index.  
+matcher is attached to the `Index`, the index's highlighter (`HtmlHighlighter` by default) is forwarded to the matcher
+and is reset when detaching the matcher from the index.  
 A matcher class always goes along with a value class, being the class, and the *only* class, whose instances the matcher
 can work with. A value instance in turn contains the real value, the matcher matches against. Again, the type that value
 is technically undefined, however a value may specify or force one.  
