@@ -11,6 +11,11 @@ class TokenMatcher extends AbstractMatcher
     const SUPPORTED_VALUE = TokenValue::class;
 
     /**
+     * @var bool
+     */
+    protected $ignoreCase = false;
+
+    /**
      * @param mixed $value
      * @param mixed $term
      * @param mixed $highlighted
@@ -19,10 +24,34 @@ class TokenMatcher extends AbstractMatcher
     protected function matchValue($value, $term, &$highlighted, int &$score): void
     {
         foreach ($value as $key => $token) {
-            if ($token === $term) {
+            if (
+                $token === $term ||
+                $this->isIgnoreCase() &&
+                is_string($term) &&
+                mb_strtolower($token) == mb_strtolower($term)
+            ) {
                 $highlighted[$key] = $this->getHighlighter()->highlight($highlighted[$key]);
                 $score++;
             }
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isIgnoreCase(): bool
+    {
+        return $this->ignoreCase;
+    }
+
+    /**
+     * @param bool $ignoreCase
+     * @return self
+     */
+    public function setIgnoreCase(bool $ignoreCase): self
+    {
+        $this->ignoreCase = $ignoreCase;
+
+        return $this;
     }
 }

@@ -43,4 +43,17 @@ class TokenMatcherTest extends TestCase
         $this->assertEquals(['foo', 'bar', 'baz', 'bar'], $value->getHighlighted());
         $this->assertEquals(0, $value->getScore());
     }
+
+    public function testIgnoreCase()
+    {
+        $matcher = (new FilenameMatcher())
+            ->setHighlighter(new PlainHighlighter())
+            ->setIgnoreCase(true);
+        $value = new FilenameValue(['FOO', 'bar']);
+
+        $matcher->match($value, 'foo');
+
+        $this->assertEquals(['**FOO**', 'bar'], $value->getHighlighted());
+        $this->assertEquals(1, $value->getScore());
+    }
 }
