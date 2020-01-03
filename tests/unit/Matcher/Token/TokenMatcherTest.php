@@ -46,10 +46,10 @@ class TokenMatcherTest extends TestCase
 
     public function testIgnoreCase()
     {
-        $matcher = (new FilenameMatcher())
+        $matcher = (new TokenMatcher())
             ->setHighlighter(new PlainHighlighter())
             ->setIgnoreCase(true);
-        $value = new FilenameValue(['FOO', 'bar']);
+        $value = new TokenValue(['FOO', 'bar']);
 
         $matcher->match($value, 'foo');
 
