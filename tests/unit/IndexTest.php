@@ -21,6 +21,7 @@ class IndexTest extends TestCase
 {
     /**
      * @uses \Futape\Search\Matcher\Token\TokenMatcher
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
      */
     public function testForwardHighlighterToAttachedMatcher()
     {
@@ -30,8 +31,10 @@ class IndexTest extends TestCase
 
         $this->assertSame($index->getHighlighter(), $matcher->getHighlighter());
 
-        $index->detachMatcher($matcher);
+        $index->setHighlighter(new PlainHighlighter());
+        $this->assertSame($index->getHighlighter(), $matcher->getHighlighter());
 
+        $index->detachMatcher($matcher);
         $this->assertNotSame($index->getHighlighter(), $matcher->getHighlighter());
     }
 

@@ -115,6 +115,19 @@ class Index
     public function setHighlighter(HighlighterInterface $highlighter): self
     {
         $this->highlighter = $highlighter;
+        $this->forwardHighlighter();
+
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    protected function forwardHighlighter(): self
+    {
+        foreach ($this->getMatchers() as $matcher) {
+            $matcher->setHighlighter($this->getHighlighter());
+        }
 
         return $this;
     }
