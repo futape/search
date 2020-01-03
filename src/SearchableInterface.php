@@ -4,6 +4,7 @@
 namespace Futape\Search;
 
 
+use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractValue;
 
 interface SearchableInterface
@@ -18,6 +19,12 @@ interface SearchableInterface
      * @return AbstractValue|null
      */
     public function getMatcherValue($key): ?AbstractValue;
+
+    /**
+     * @param HighlighterInterface|null $highlighter
+     * @return self
+     */
+    public function setHighlighter(?HighlighterInterface $highlighter): self;
 
     /**
      * @return int

@@ -55,6 +55,9 @@ class Index
      */
     public function addSearchable(SearchableInterface $searchable): self
     {
+        $searchable
+            ->reset()
+            ->setHighlighter($this->getHighlighter());
         $this->searchables[] = $searchable;
 
         return $this;
@@ -78,7 +81,6 @@ class Index
             $this->detachMatcher($this->matchers[$matcher::SUPPORTED_VALUE]);
         }
 
-        $matcher->setHighlighter($this->getHighlighter());
         $this->matchers[$matcher::SUPPORTED_VALUE] = $matcher;
 
         return $this;
@@ -94,7 +96,6 @@ class Index
 
         if ($matcherKey !== false) {
             unset($this->matchers[$matcherKey]);
-            $matcher->setHighlighter(null);
         }
 
         return $this;
@@ -125,8 +126,8 @@ class Index
      */
     protected function forwardHighlighter(): self
     {
-        foreach ($this->getMatchers() as $matcher) {
-            $matcher->setHighlighter($this->getHighlighter());
+        foreach ($this->getSearchables() as $searchable) {
+            $searchable->setHighlighter($this->getHighlighter());
         }
 
         return $this;

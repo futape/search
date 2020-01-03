@@ -4,21 +4,12 @@
 namespace Futape\Search\Matcher;
 
 
-use Futape\Search\Highlighter\DummyHighlighter;
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\Exception\UnsupportedValueException;
 
 abstract class AbstractMatcher
 {
     const SUPPORTED_VALUE = '';
-
-    /** @var HighlighterInterface */
-    private $highlighter;
-
-    public function __construct()
-    {
-        $this->setHighlighter(null);
-    }
 
     /**
      * @param AbstractValue $value
@@ -37,7 +28,7 @@ abstract class AbstractMatcher
             ->getHighlighted();
         $score = $value->getScore();
 
-        $this->matchValue($value->getValue(), $term, $highlighted, $score);
+        $this->matchValue($value->getValue(), $term, $value->getHighlighter(), $highlighted, $score);
 
         $value
             ->setHighlighted($highlighted)
@@ -49,10 +40,17 @@ abstract class AbstractMatcher
     /**
      * @param mixed $value
      * @param mixed $term
+     * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
-    abstract protected function matchValue($value, $term, &$highlighted, int &$score): void;
+    abstract protected function matchValue(
+        $value,
+        $term,
+        HighlighterInterface $highlighter,
+        &$highlighted,
+        int &$score
+    ): void;
 
     /**
      * @param AbstractValue $value
@@ -61,24 +59,5 @@ abstract class AbstractMatcher
     public function accept(AbstractValue $value): bool
     {
         return get_class($value) == static::SUPPORTED_VALUE;
-    }
-
-    /**
-     * @param HighlighterInterface $highlighter
-     * @return self
-     */
-    public function setHighlighter(?HighlighterInterface $highlighter): self
-    {
-        $this->highlighter = $highlighter ?? new DummyHighlighter();
-
-        return $this;
-    }
-
-    /**
-     * @return HighlighterInterface
-     */
-    public function getHighlighter(): HighlighterInterface
-    {
-        return $this->highlighter;
     }
 }

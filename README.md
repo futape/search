@@ -18,16 +18,16 @@ composer require futape/search
 
 Matchers are components for matching an indexed value against a search term. The type of the value and of the search
 term is technically completely free. However, different concrete matchers may specify or force a type.  
-Every matcher has a highlighter attached to it. By default it's initialized with a `DummyHighlighter`. As soon as a
-matcher is attached to the `Index`, the index's highlighter (`HtmlHighlighter` by default) is forwarded to the matcher
-and is reset when detaching the matcher from the index.  
 A matcher class always goes along with a value class, being the class, and the *only* class, whose instances the matcher
 can work with. A value instance in turn contains the real value, the matcher matches against. Again, the type of that
 value is technically undefined, however a value may specify or force one.  
 Besides the managed value, a value instance also manages a matching score, as well as a highlighted version of the
 managed value.  
-Please note, that each matcher and value instance must not be attached to more than one index at a time.
-Otherwise you may encounter undesired behavior when highlighting values.  
+Every value has a highlighter attached to it. By default it's initialized with a `DummyHighlighter`. As soon as a
+searchable is added to the `Index`, the index's highlighter (`HtmlHighlighter` by default) is forwarded to all values
+provided by the searchable.  
+Please note, a value instance is intended to be provided by exactly one searchable at a time and is not shared by
+multiple searchables. Otherwise you may encounter undefined behavior.  
 There are an abstract matcher and value you can extend to build your own, as well as a few predefined concrete
 matchers. There's also a `AbstractArrayValue` class which extends the `AbstractValue` class and manages the managed
 value to be an array.
@@ -43,7 +43,8 @@ value matching value is highlighted.
 To create your own matcher, just create one class extending the `AbstractMatcher` class and one extending the
 `AbstractValue` class. Then set the `SUPPORTED_VALUE` constant of your matcher class to the FQCN of your value class.  
 In your matcher class, you have to implement the `matchValue` method which takes the value managed by an instance of
-your value class and the search term, as well as references to to highlighted value and the matching score.
+your value class, the search term and a highlighter instance, as well as references to the highlighted value and the
+matching score.
 
 To implement a matcher that just compares the value to the term, highlights that value if it matches and increases the
 score, you may create a class like below:
@@ -60,13 +61,14 @@ class EqualsMatcher extends AbstractMatcher
     /**
      * @param mixed $value
      * @param mixed $term
+     * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
-    protected function matchValue($value, $term, &$highlighted, int &$score): void
+    protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
         if ($value == $term) {
-            $highlighted = $this->getHighlighter()->highlight($highlighted);
+            $highlighted = $highlighter->highlight($highlighted);
             $score++;
         }
     }

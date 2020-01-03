@@ -4,6 +4,7 @@
 namespace Futape\Search\Matcher\Token;
 
 
+use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
 
 class TokenMatcher extends AbstractMatcher
@@ -18,11 +19,17 @@ class TokenMatcher extends AbstractMatcher
     /**
      * @param mixed $value
      * @param mixed $term
+     * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
-    protected function matchValue($value, $term, &$highlighted, int &$score): void
-    {
+    protected function matchValue(
+        $value,
+        $term,
+        HighlighterInterface $highlighter,
+        &$highlighted,
+        int &$score
+    ): void {
         foreach ($value as $key => $token) {
             if (
                 $token === $term ||
@@ -30,7 +37,7 @@ class TokenMatcher extends AbstractMatcher
                 is_string($term) &&
                 mb_strtolower($token) == mb_strtolower($term)
             ) {
-                $highlighted[$key] = $this->getHighlighter()->highlight($highlighted[$key]);
+                $highlighted[$key] = $highlighter->highlight($token);
                 $score++;
             }
         }

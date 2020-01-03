@@ -4,6 +4,9 @@
 namespace Futape\Search\Matcher;
 
 
+use Futape\Search\Highlighter\DummyHighlighter;
+use Futape\Search\Highlighter\HighlighterInterface;
+
 abstract class AbstractValue
 {
     /** @var mixed */
@@ -15,12 +18,25 @@ abstract class AbstractValue
     /** @var int */
     private $score;
 
+    /** @var HighlighterInterface */
+    private $highlighter;
+
     /**
      * @param mixed $value
      */
     public function __construct($value)
     {
+        // Don't use setValue() here since the setter would call reset() which calls resetHighlighted() in turn which is
+        // likely to call getHighlighter() which requires a value for $highlighter, which doesn't exist at this point.
+        // Initialize $highlighter since setValue() calls reset() which calls resetHighlighted() in turn which is likely
+        // to call getHighlighter() which requires a value for $highlighter.
+        // Not using the setter(s) isn't an option since subclasses may override the setter to process the value.
+        // Using setHighlighter() here isn't possible since it calls reset(), too. However, call as the final method
+        // to benefit of a subclass's overridden setHighlighter() method, whose logic will affect $highlighted since
+        // that method calls reset().
+        $this->highlighter = new DummyHighlighter();
         $this->setValue($value);
+        $this->setHighlighter(null);
     }
 
     /**
@@ -81,6 +97,25 @@ abstract class AbstractValue
     }
 
     /**
+     * @param HighlighterInterface $highlighter
+     * @return self
+     */
+    public function setHighlighter(?HighlighterInterface $highlighter): self
+    {
+        $this->highlighter = $highlighter ?? new DummyHighlighter();
+
+        return $this->reset();
+    }
+
+    /**
+     * @return HighlighterInterface
+     */
+    public function getHighlighter(): HighlighterInterface
+    {
+        return $this->highlighter;
+    }
+
+    /**
      * @return self
      */
     public function reset(): self
@@ -89,6 +124,12 @@ abstract class AbstractValue
             ->setHighlighted($this->cloneValue($this->getValue()))
             ->setScore(0);
     }
+
+    /**
+     * @param mixed $highlighted
+     * @return mixed
+     */
+    abstract protected function resetHighlighted($highlighted);
 
     /**
      * @param mixed $value

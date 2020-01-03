@@ -20,22 +20,20 @@ use PHPUnit\Framework\TestCase;
 class IndexTest extends TestCase
 {
     /**
-     * @uses \Futape\Search\Matcher\Token\TokenMatcher
+     * @uses \Futape\Search\Matcher\Token\TokenValue
      * @uses \Futape\Search\Highlighter\PlainHighlighter
      */
-    public function testForwardHighlighterToAttachedMatcher()
+    public function testForwardHighlighter()
     {
-        $matcher = new TokenMatcher();
+        $value = new TokenValue([]);
+        $searchable = self::getAbstractSearchableMock(['value1' => $value]);
         $index = (new Index())
-            ->attachMatcher($matcher);
+            ->addSearchable($searchable);
 
-        $this->assertSame($index->getHighlighter(), $matcher->getHighlighter());
+        $this->assertSame($index->getHighlighter(), $value->getHighlighter());
 
         $index->setHighlighter(new PlainHighlighter());
-        $this->assertSame($index->getHighlighter(), $matcher->getHighlighter());
-
-        $index->detachMatcher($matcher);
-        $this->assertNotSame($index->getHighlighter(), $matcher->getHighlighter());
+        $this->assertSame($index->getHighlighter(), $value->getHighlighter());
     }
 
     /**
@@ -54,7 +52,6 @@ class IndexTest extends TestCase
 
         $this->assertContains($overrideMatcher, $index->getMatchers());
         $this->assertNotContains($matcher, $index->getMatchers());
-        $this->assertNotSame($index->getHighlighter(), $matcher->getHighlighter());
     }
 
     /**
@@ -144,6 +141,31 @@ class IndexTest extends TestCase
 
         $index->setSearchableFilter(null);
         $this->assertContains($searchable, $index->getSearchables());
+    }
+
+    /**
+     * @uses \Futape\Search\Matcher\Token\TokenMatcher
+     * @uses \Futape\Search\Matcher\Token\TokenValue
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
+     */
+    public function testResetSearchableWhenAdded()
+    {
+        $value = new TokenValue(['foo', 'bar', 'baz']);
+        $searchable = self::getAbstractSearchableMock(['value1' => $value]);
+
+        (new Index(new PlainHighlighter()))
+            ->attachMatcher(new TokenMatcher())
+            ->addSearchable($searchable)
+            ->search('bar');
+
+        $this->assertEquals(1, $value->getScore());
+        $this->assertEquals(['foo', '**bar**', 'baz'], $value->getHighlighted());
+
+        (new Index())
+            ->addSearchable($searchable);
+
+        $this->assertEquals(0, $value->getScore());
+        $this->assertEquals(['foo', 'bar', 'baz'], $value->getHighlighted());
     }
 
     /**

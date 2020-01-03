@@ -24,9 +24,9 @@ class TokenMatcherTest extends TestCase
      */
     public function testMatch()
     {
-        $matcher = (new TokenMatcher())
+        $matcher = new TokenMatcher();
+        $value = (new TokenValue(['foo', 'bar', 'baz', 'bar']))
             ->setHighlighter(new PlainHighlighter());
-        $value = new TokenValue(['foo', 'bar', 'baz', 'bar']);
 
         $matcher->match($value, 'foo');
 
@@ -47,9 +47,9 @@ class TokenMatcherTest extends TestCase
     public function testIgnoreCase()
     {
         $matcher = (new TokenMatcher())
-            ->setHighlighter(new PlainHighlighter())
             ->setIgnoreCase(true);
-        $value = new TokenValue(['FOO', 'bar']);
+        $value = (new TokenValue(['FOO', 'bar']))
+            ->setHighlighter(new PlainHighlighter());
 
         $matcher->match($value, 'foo');
 

@@ -4,6 +4,7 @@
 namespace Futape\Search\Tests\Unit\Matcher;
 
 
+use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Highlighter\PlainHighlighter;
 use Futape\Search\Matcher\AbstractMatcher;
 use Futape\Search\Matcher\AbstractValue;
@@ -23,9 +24,9 @@ class AbstractMatcherTest extends TestCase
      */
     public function testMatch()
     {
-        $value = AbstractValueTest::getAbstractValueMock('foo');
-        $matcher = (self::getAbstractMatcherMock(get_class($value)))
+        $value = AbstractValueTest::getAbstractValueMock('foo')
             ->setHighlighter(new PlainHighlighter());
+        $matcher = self::getAbstractMatcherMock(get_class($value));
 
         $matcher->match($value, 'foo');
 
@@ -80,9 +81,15 @@ class AbstractMatcherTest extends TestCase
             ->method('matchValue')
             ->will(
                 self::returnCallback(
-                    function ($value, $term, &$highlighted, int &$score) use ($matcher): void {
+                    function (
+                        $value,
+                        $term,
+                        HighlighterInterface $highlighter,
+                        &$highlighted,
+                        int &$score
+                    ) use ($matcher): void {
                         if ($value === $term) {
-                            $highlighted = $matcher->getHighlighter()->highlight($highlighted);
+                            $highlighted = $highlighter->highlight($highlighted);
                             $score++;
                         }
                     }
