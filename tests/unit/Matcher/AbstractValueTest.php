@@ -39,7 +39,7 @@ class AbstractValueTest extends TestCase
      */
     public function testObjectsClonedForHighlight($managedValue)
     {
-        $this->assertNotSame($managedValue, $this->getAbstractValueMock($managedValue)->getHighlighted());
+        $this->assertNotSame($managedValue, self::getAbstractValueMock($managedValue)->getHighlighted());
     }
 
     public function objectsClonedForHighlightDataProvider(): array
