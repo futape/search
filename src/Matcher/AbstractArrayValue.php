@@ -4,7 +4,7 @@
 namespace Futape\Search\Matcher;
 
 
-class AbstractArrayValue extends AbstractValue
+abstract class AbstractArrayValue extends AbstractValue
 {
     /**
      * @param array $value
