@@ -60,7 +60,7 @@ class IndexTest extends TestCase
      * @uses \Futape\Search\Highlighter\PlainHighlighter
      * @uses \Futape\Search\AbstractSearchable
      */
-    public function testMatch()
+    public function testSearch()
     {
         $value1 = new TokenValue(['foo', 'bar', 'baz']);
         $value2 = new TokenValue(['foo', 'baz', 'bar', 'bar']);
@@ -75,17 +75,17 @@ class IndexTest extends TestCase
             ->addSearchable($searchable)
             ->search('bar');
 
-        $this->assertSame($index->getSearchables()[0], $searchable);
+        $this->assertSame($searchable, $index->getSearchables()[0]);
         $this->assertEquals(3, $index->getSearchables()[0]->getScore());
 
-        $this->assertSame($index->getSearchables()[0]->getMatcherValue('value1'), $value1);
+        $this->assertSame($value1, $index->getSearchables()[0]->getMatcherValue('value1'));
         $this->assertEquals(1, $index->getSearchables()[0]->getMatcherValue('value1')->getScore());
         $this->assertEquals(
             ['foo', '**bar**', 'baz'],
             $index->getSearchables()[0]->getMatcherValue('value1')->getHighlighted()
         );
 
-        $this->assertSame($index->getSearchables()[0]->getMatcherValue('value2'), $value2);
+        $this->assertSame($value2, $index->getSearchables()[0]->getMatcherValue('value2'));
         $this->assertEquals(2, $index->getSearchables()[0]->getMatcherValue('value2')->getScore());
         $this->assertEquals(
             ['foo', 'baz', '**bar**', '**bar**'],
