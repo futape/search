@@ -24,4 +24,20 @@ class TokenValue extends AbstractArrayValue
 
         return parent::setValue($value);
     }
+
+    /**
+     * @param mixed $highlighted
+     * @return mixed
+     */
+    protected function resetHighlighted($highlighted)
+    {
+        array_walk(
+            $highlighted,
+            function (&$val) {
+                $val = $this->getHighlighter()->lowlight($val);
+            }
+        );
+
+        return $highlighted;
+    }
 }

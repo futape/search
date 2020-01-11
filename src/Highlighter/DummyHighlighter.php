@@ -14,4 +14,13 @@ class DummyHighlighter implements HighlighterInterface
     {
         return $value;
     }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    public function lowlight($value)
+    {
+        return $value;
+    }
 }

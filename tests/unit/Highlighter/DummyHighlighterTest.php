@@ -14,6 +14,11 @@ class DummyHighlighterTest extends TestCase
 {
     public function testHighlight()
     {
-        $this->assertEquals(false, (new DummyHighlighter())->highlight(false));
+        $this->assertSame(false, (new DummyHighlighter())->highlight(false));
+    }
+
+    public function testLowlight()
+    {
+        $this->assertSame(false, (new DummyHighlighter())->lowlight(false));
     }
 }

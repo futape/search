@@ -14,6 +14,13 @@ class HtmlHighlighterTest extends TestCase
 {
     public function testHighlight()
     {
-        $this->assertEquals('<mark>foobar</mark>', (new HtmlHighlighter())->highlight('foobar'));
+        $this->assertEquals('<mark>fo&lt;&gt;bar</mark>', (new HtmlHighlighter())->highlight('fo<>bar'));
+        $this->assertSame('<mark>142</mark>', (new HtmlHighlighter())->highlight(142));
+    }
+
+    public function testLowlight()
+    {
+        $this->assertEquals('fo&lt;&gt;bar', (new HtmlHighlighter())->lowlight('fo<>bar'));
+        $this->assertSame('142', (new HtmlHighlighter())->lowlight(142));
     }
 }

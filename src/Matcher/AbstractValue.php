@@ -121,7 +121,7 @@ abstract class AbstractValue
     public function reset(): self
     {
         return $this
-            ->setHighlighted($this->cloneValue($this->getValue()))
+            ->setHighlighted($this->resetHighlighted($this->cloneValue($this->getValue())))
             ->setScore(0);
     }
 

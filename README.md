@@ -44,7 +44,10 @@ To create your own matcher, just create one class extending the `AbstractMatcher
 `AbstractValue` class. Then set the `SUPPORTED_VALUE` constant of your matcher class to the FQCN of your value class.  
 In your matcher class, you have to implement the `matchValue` method which takes the value managed by an instance of
 your value class, the search term and a highlighter instance, as well as references to the highlighted value and the
-matching score.
+matching score.  
+Your value has to implement the `resetHighlighted` method which takes a copy of the value managed by the value instance,
+which will become the highlighted value, resets it to its initial state and returns it. Most often this means to
+lowlight it using the `lowlight` method of the value's highlighter.
 
 To implement a matcher that just compares the value to the term, highlights that value if it matches and increases the
 score, you may create a class like below:
@@ -82,12 +85,21 @@ use Futape\Search\Matcher\AbstractValue;
 
 class EqualsValue extends AbstractValue
 {
+    /**
+     * @param mixed $highlighted
+     * @return mixed
+     */
+    protected function resetHighlighted($highlighted)
+    {
+        return $this->getHighlighter()->lowlight($highlighted);
+    }
 }
 ```
 
 ### Highlighters
 
-Highlighters are used to highlight matching values.  
+Highlighters are used to highlight matching values, as well as for lowlighting values (i.e. process the value
+according to the highlighter's logic and character but don't highlight it).  
 Technically a highlighter may highlight any value, being it scalar value like a string or a float, or something like an
 object, it just needs to know how to do it.  
 Therefore there are a few predefined highlighters as well as an abstract one and an interface to built you own
@@ -99,7 +111,8 @@ String highlighters are made for highlighting strings.
 There are two predefined string highlighters:
 
 + `PlainHighlighter`: Highlights a value in a markdown-like manner for usage in plaintext (e.g. `**Foo** Bar`)
-+ `HtmlHighlighter`: Highlights a value using HTML `mark` tags (e.g. `<mark>Foo</mark> Bar`)
++ `HtmlHighlighter`: Highlights a value using HTML `mark` tags (e.g. `<mark>Foo</mark> Bar`) and HTML-escapes special
+  characters
 
 #### Dummy Highlighter
 

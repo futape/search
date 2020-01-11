@@ -4,7 +4,9 @@
 namespace Futape\Search\Tests\Unit\Matcher;
 
 
+use Futape\Search\Highlighter\HtmlHighlighter;
 use Futape\Search\Matcher\AbstractValue;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
@@ -15,16 +17,18 @@ class AbstractValueTest extends TestCase
 {
     public function testReset()
     {
-        $value = self::getAbstractValueMock('foobar')
-            ->setHighlighted('**foo**bar')
+        $value = self::getAbstractValueMock('fo<>bar');
+        $value
+            ->setHighlighter(new HtmlHighlighter())
+            ->setHighlighted($value->getHighlighter()->highlight($value->getValue()))
             ->setScore(1);
 
-        $this->assertEquals('**foo**bar', $value->getHighlighted());
+        $this->assertEquals('<mark>fo&lt;&gt;bar</mark>', $value->getHighlighted());
         $this->assertEquals(1, $value->getScore());
 
         $value->reset();
 
-        $this->assertEquals('foobar', $value->getHighlighted());
+        $this->assertEquals('fo&lt;&gt;bar', $value->getHighlighted());
         $this->assertEquals(0, $value->getScore());
     }
 
@@ -55,6 +59,27 @@ class AbstractValueTest extends TestCase
 
     public static function getAbstractValueMock(...$arguments): AbstractValue
     {
-        return (new self())->getMockForAbstractClass(AbstractValue::class, $arguments);
+        /** @var MockObject|AbstractValue $value */
+        $value = (new self())->getMockForAbstractClass(
+            AbstractValue::class,
+            $arguments,
+            '',
+            true,
+            true,
+            true,
+            ['resetHighlighted']
+        );
+        $value
+            ->expects(self::any())
+            ->method('resetHighlighted')
+            ->will(
+                self::returnCallback(
+                    function ($highlighted) use ($value) {
+                        return $value->getHighlighter()->lowlight($highlighted);
+                    }
+                )
+            );
+
+        return $value;
     }
 }

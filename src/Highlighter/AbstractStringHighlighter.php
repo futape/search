@@ -20,4 +20,13 @@ abstract class AbstractStringHighlighter implements HighlighterInterface
     {
         return $this->opening . $value . $this->closing;
     }
+
+    /**
+     * @param mixed $value
+     * @return mixed
+     */
+    public function lowlight($value): string
+    {
+        return (string)$value;
+    }
 }
