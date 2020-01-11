@@ -206,14 +206,14 @@ use Your\Domain\Model\Article;
 // See "Indexed Objects (Searchables)" section for this example searchable
 use Your\Domain\Search\ArticleSearchable;
 
-$index = (new Index(new PlainHighlighter())
+$index = (new Index(new PlainHighlighter()))
     // Attach a matcher to process the searchables' values
     ->attachMatcher(new TokenMatcher())
     
     // Add searchables to the index
-    ->addSearchable(new ArticleSearchable(new Article(42)) // tags: animals, zoo, plants; categories: nature, plants
-    ->addSearchable(new ArticleSearchable(new Article(101)) // tags: park, plants; categories: vacation
-    ->addSearchable(new ArticleSearchable(new Article(61)) // tags: skyscrapers, concrete; categories: vacation, cities
+    ->addSearchable(new ArticleSearchable(new Article(42))) // tags: animals, zoo, plants; categories: nature, plants
+    ->addSearchable(new ArticleSearchable(new Article(101))) // tags: park, plants; categories: vacation
+    ->addSearchable(new ArticleSearchable(new Article(61))) // tags: skyscrapers, concrete; categories: vacation, cities
     
     // Execute the search
     ->search('plants');
