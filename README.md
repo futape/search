@@ -4,7 +4,7 @@ This framework offers a basic set of utilities for building your search index an
 matching strategies.
 
 You are completely free in the choice and the structure of the objects to index.  
-News matchers can be implemented and added in seconds. The same applies to highlighters.
+New matchers can be implemented and added in seconds. The same applies to highlighters.
 
 ## Install
 
@@ -34,9 +34,16 @@ and manages the managed value to be an array or string respectively.
 
 #### Token Matcher
 
-The `TokenMatcher` works with `TokenValues`, which managed a 1-dim string array.  
+The `TokenMatcher` works with `TokenValue`, which manages a 1-dim string array of strings.  
 The managed array is searched strictly for a given search term. The score is increased by 1 for every match and the
-value matching value is highlighted.
+matching value is highlighted.
+
+#### Filename Matcher
+
+The `FilenameMatcher` works with `FilenameValue`, which manages a path as a string.  
+The basename of the path is compared strictly to the search term. If that fails, the matcher tries to match the filename
+of the path, which requires the path not to end with a slash or to point to a directory. If any attempt matches, the
+score is increased by 1 and the matching part is highlighted.
 
 #### Building Your Own Matcher
 
