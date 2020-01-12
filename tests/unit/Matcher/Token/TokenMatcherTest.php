@@ -21,6 +21,7 @@ class TokenMatcherTest extends TestCase
 
     /**
      * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\Matcher\Token\TokenValue
      */
     public function testMatch()
     {
@@ -44,6 +45,9 @@ class TokenMatcherTest extends TestCase
         $this->assertEquals(0, $value->getScore());
     }
 
+    /**
+     * @uses \Futape\Search\Matcher\Token\TokenValue
+     */
     public function testIgnoreCase()
     {
         $matcher = (new TokenMatcher())

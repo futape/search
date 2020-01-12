@@ -7,3 +7,4 @@
 + [x] Instead of forwarding highlighter to value and matcher, just forward and assign to value and read highlighter
       in AbstractMatcher::match() from the value object and pass as argument to AbstractMatcher::matchValue() (or make
       it accessible there in another way)
++ [ ] Consider default implementation of AbstractValue::resetHighlighted() in AbstractArrayValue and AbstractStringValue

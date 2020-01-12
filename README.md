@@ -29,8 +29,8 @@ provided by the searchable.
 Please note, a value instance is intended to be provided by exactly one searchable at a time and is not shared by
 multiple searchables. Otherwise you may encounter undefined behavior.  
 There are an abstract matcher and value you can extend to build your own, as well as a few predefined concrete
-matchers. There's also a `AbstractArrayValue` class which extends the `AbstractValue` class and manages the managed
-value to be an array.
+matchers. There's also a `AbstractArrayValue` and a `AbstractStringValue` class which extend the `AbstractValue` class
+and manages the managed value to be an array or string respectively.
 
 #### Token Matcher
 
