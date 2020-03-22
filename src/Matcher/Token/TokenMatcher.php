@@ -6,6 +6,8 @@ namespace Futape\Search\Matcher\Token;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
+use Futape\Search\TermCollection;
+use Futape\Utility\ArrayUtility\Arrays;
 
 class TokenMatcher extends AbstractMatcher
 {
@@ -41,6 +43,27 @@ class TokenMatcher extends AbstractMatcher
                 $score++;
             }
         }
+    }
+
+    /**
+     * @param TermCollection $termCollection
+     * @return TermCollection
+     */
+    protected function processTermCollection(TermCollection $termCollection): TermCollection
+    {
+        $termCollection->exchangeArray(
+            Arrays::unique(
+                array_filter(
+                    $termCollection->getArrayCopy(),
+                    function ($val) {
+                        return is_string($val);
+                    }
+                ),
+                Arrays::UNIQUE_STRING | ($this->isIgnoreCase() ? Arrays::UNIQUE_LOWERCASE : 0)
+            )
+        );
+
+        return $termCollection;
     }
 
     /**
