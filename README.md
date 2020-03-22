@@ -45,6 +45,21 @@ The basename of the path is compared strictly to the search term. If that fails,
 of the path, which requires the path not to end with a slash or to point to a directory. If any attempt matches, the
 score is increased by 1 and the matching part is highlighted.
 
+#### Fulltext Matcher
+
+The `FulltextMatcher` works with `FulltextValue`, which manages any arbitrary string.  
+Searches the string for the search term. The areas the term can exist in are configured using
+`setWordBoundarySeverity()`. The available `WORD_BOUNDARY_SEVERITY_*` constants are documented below:
+
++ `WORD_BOUNDARY_SEVERITY_EXTRA_HIGH`: Term has to be surrounded by whitespaces
++ `WORD_BOUNDARY_SEVERITY_HIGH`: Term has to be surrounded by any non-alphanumeric character (including "_")
++ `WORD_BOUNDARY_SEVERITY_MEDIUM` (default): Like `WORD_BOUNDARY_SEVERITY_HIGH`, but a non-digit following a digit
+  (or vice versa) also marks a term boundary
++ `WORD_BOUNDARY_SEVERITY_LOW`: No rules at all. The term can exist anywhere in the search value.
+
+If found, the score is increased by the number of found occurrences of the term, but also by considering the term's
+complexity (i.e. its length/number of words in it).
+
 #### Building Your Own Matcher
 
 To create your own matcher, just create one class extending the `AbstractMatcher` class and one extending the
