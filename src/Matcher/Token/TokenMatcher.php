@@ -15,6 +15,8 @@ class TokenMatcher extends AbstractMatcher
 
     /**
      * @var bool
+     *
+     * @todo BREAKING: Default to true to match FulltextMatcher?
      */
     protected $ignoreCase = false;
 

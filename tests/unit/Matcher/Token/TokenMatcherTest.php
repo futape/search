@@ -50,13 +50,17 @@ class TokenMatcherTest extends TestCase
      */
     public function testIgnoreCase()
     {
-        $matcher = (new TokenMatcher())
-            ->setIgnoreCase(true);
+        $matcher = new TokenMatcher();
         $value = (new TokenValue(['FOO', 'bar']))
             ->setHighlighter(new PlainHighlighter());
 
         $matcher->match($value, 'foo');
+        $this->assertEquals(['FOO', 'bar'], $value->getHighlighted());
+        $this->assertEquals(0, $value->getScore());
 
+        $matcher->setIgnoreCase(true);
+
+        $matcher->match($value, 'foo');
         $this->assertEquals(['**FOO**', 'bar'], $value->getHighlighted());
         $this->assertEquals(1, $value->getScore());
     }
