@@ -22,6 +22,10 @@ class FilenameMatcher extends AbstractMatcher
      */
     protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
+        if (!is_string($term)) {
+            return;
+        }
+
         $pathinfo = pathinfo($value);
 
         if ($pathinfo['basename'] === $term) {
