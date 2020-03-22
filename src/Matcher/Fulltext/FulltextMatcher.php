@@ -6,10 +6,13 @@ namespace Futape\Search\Matcher\Fulltext;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
+use Futape\Search\TermCollection;
+use Futape\Utility\ArrayUtility\Arrays;
 
 class FulltextMatcher extends AbstractMatcher
 {
     const SUPPORTED_VALUE = FulltextValue::class;
+    const SUPPORTS_TERM_COLLECTION = true;
 
     const WORD_BOUNDARY_SEVERITY_LOW = 1;
     const WORD_BOUNDARY_SEVERITY_MEDIUM = 2;
@@ -95,6 +98,27 @@ class FulltextMatcher extends AbstractMatcher
     }
 
     /**
+     * @param TermCollection $termCollection
+     * @return TermCollection
+     */
+    protected function processTermCollection(TermCollection $termCollection): TermCollection
+    {
+        $termCollection->exchangeArray(
+            Arrays::unique(
+                array_filter(
+                    $termCollection->getArrayCopy(),
+                    function ($val) {
+                        return is_string($val);
+                    }
+                ),
+                Arrays::UNIQUE_STRING | ($this->isIgnoreCase() ? Arrays::UNIQUE_LOWERCASE : 0)
+            )
+        );
+
+        return $termCollection;
+    }
+
+    /**
      * @param mixed $value
      * @param mixed $term
      * @param HighlighterInterface $highlighter
@@ -103,39 +127,79 @@ class FulltextMatcher extends AbstractMatcher
      */
     protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
-        if (!is_string($term)) {
-            return;
+        if ($term instanceof TermCollection) {
+            $terms = $term->getArrayCopy();
+        } else {
+            $terms = [$term];
         }
 
+        $terms = Arrays::unique(
+            array_filter(
+                $terms,
+                function ($val) {
+                    return is_string($val);
+                }
+            ),
+            Arrays::UNIQUE_STRING | ($this->isIgnoreCase() ? Arrays::UNIQUE_LOWERCASE : 0)
+        );
         $highlightAreas = [];
-        $matches = [];
 
-        preg_match_all(
-            $this->getRegex($this->getPattern($term)),
-            $value,
-            $matches,
-            PREG_SET_ORDER | PREG_OFFSET_CAPTURE
-        );
-
-        $matches = array_filter(
-            $matches,
-            function ($match) {
-                return $match[0][0] != '';
-            }
-        );
-
-        if (count($matches) > 0) {
-            $matchesNumber = count($matches);
-            $score += $matchesNumber;
-
-            $termTokensNumber = count($this->getTokens($term));
-            if ($termTokensNumber > 1) {
-                $score += $termTokensNumber * $matchesNumber;
+        foreach ($terms as $term) {
+            if (!is_string($term)) {
+                continue;
             }
 
-            foreach ($matches as $match) {
-                $highlightAreas[] = $match[0][1];
-                $highlightAreas[] = -($match[0][1] + strlen($match[0][0]));
+            $matches = [];
+
+            preg_match_all(
+                $this->getRegex($this->getPattern($term)),
+                $value,
+                $matches,
+                PREG_SET_ORDER | PREG_OFFSET_CAPTURE
+            );
+
+            $matches = array_filter(
+                $matches,
+                function ($match) {
+                    return $match[0][0] != '';
+                }
+            );
+
+            if (count($matches) > 0) {
+                $matchesNumber = count($matches);
+                $score += $matchesNumber;
+
+//            'Three words with two instances of one word in term (word boundary)' => ['foo_bar bar bam', 'foo_bar bar', 4],
+//            // 1 + 1*1 + 2*1
+//
+//            // Compare to above! Is this correct?
+//            // How to express priority/power/weight of term?
+//            /*
+//             * 1. Count of tokens (space-separated) or words (impossible if word boundary = none) in term
+//             * 2. Count of occurrences per token in term
+//             *    + Beware to count a token only once for all passed terms when implementing TermCollection
+//             * 3. Size of portion the term has in relation to value to search in (= size of term)
+//             *    + may result in a float, but integers are required
+//             * >>> 4. Add number of found occurrences of term in search string for each token in term (similar to 1.)
+//             *    + Beware to count a token only once for all passed terms when implementing TermCollection
+//             *      + When searching for the single token in whole search string, the count may likely be higher
+//             *    + ~Only required for unique tokens in term~ Do for *every* token in term - even duplicated
+//             *    + Value added per token must not be greater than possible when searching for that single token the
+//             *      search string => not possible if implements as described above
+//             *
+//             * Whenever adding per token, do so only if more than 1 token exists in term
+//             */
+//            'Three words (word boundary)' => ['foo_bar baz bam', 'foo_bar baz', 3],
+//            // 1 + 1*1 + 1*1
+                $termTokensNumber = count($this->getTokens($term));
+                if ($termTokensNumber > 1) {
+                    $score += $termTokensNumber * $matchesNumber;
+                }
+
+                foreach ($matches as $match) {
+                    $highlightAreas[] = $match[0][1];
+                    $highlightAreas[] = -($match[0][1] + strlen($match[0][0]));
+                }
             }
         }
 
