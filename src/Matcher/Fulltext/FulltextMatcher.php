@@ -290,6 +290,8 @@ class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
      */
     protected function getTokens(string $value): array
     {
+        $value = trim($value);
+
         if ($value == '') {
             return [];
         }

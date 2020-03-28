@@ -211,4 +211,26 @@ class FulltextMatcherTest extends TestCase
         $this->assertEquals('Foobarbaz**01**2bam', $value->getHighlighted());
         $this->assertEquals(1, $value->getScore());
     }
+
+    /**
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\Matcher\Fulltext\FulltextValue
+     */
+    public function testMatchWhitespacePaddedTerm()
+    {
+        $matcher = (new FulltextMatcher())
+            ->setWordBoundarySeverity(FulltextMatcher::WORD_BOUNDARY_SEVERITY_EXTRA_HIGH);
+        $value = (new FulltextValue('Foo Bar Baz'))
+            ->setHighlighter(new PlainHighlighter());
+
+        $matcher->match($value, ' Bar ');
+        $this->assertEquals('Foo** Bar **Baz', $value->getHighlighted());
+        $this->assertEquals(1, $value->getScore());
+
+        $matcher->setLiteralSpaces(true);
+
+        $matcher->match($value, ' Bar ');
+        $this->assertEquals('Foo** Bar **Baz', $value->getHighlighted());
+        $this->assertEquals(1, $value->getScore());
+    }
 }
