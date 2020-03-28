@@ -12,7 +12,6 @@ use Futape\Search\TermCollection;
 class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
 {
     const SUPPORTED_VALUE = FulltextValue::class;
-    const SUPPORTS_TERM_COLLECTION = true;
 
     const WORD_BOUNDARY_SEVERITY_LOW = 1;
     const WORD_BOUNDARY_SEVERITY_MEDIUM = 2;
@@ -267,8 +266,6 @@ class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
     /**
      * @param string $value
      * @return string
-     *
-     * @todo Consider trimming the term if literal spaces is false
      */
     protected function getPattern(string $value): string
     {
