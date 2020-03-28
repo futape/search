@@ -32,7 +32,7 @@ class FilenameMatcher extends AbstractMatcher
 
         $pathinfo = pathinfo($value);
 
-        if ($pathinfo['basename'] === $term) {
+        if ($pathinfo['basename'] == $term) {
             // Match against last path segment (directory or file)
             $highlighted = $highlighter->highlight($pathinfo['basename']);
             $score++;
@@ -40,7 +40,7 @@ class FilenameMatcher extends AbstractMatcher
             $pathinfo['filename'] != '' &&
             !Strings::endsWith($value, '/') &&
             !is_dir($value) &&
-            $pathinfo['filename'] === $term
+            $pathinfo['filename'] == $term
         ) {
             // Match against filename (ignored if value ends with a slash, indicating a directory, or points to a one)
             $highlighted = $highlighter->highlight($pathinfo['filename']);

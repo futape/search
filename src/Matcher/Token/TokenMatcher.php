@@ -6,10 +6,11 @@ namespace Futape\Search\Matcher\Token;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
+use Futape\Search\Matcher\TermCollectionAware;
 use Futape\Search\TermCollection;
 use Futape\Utility\ArrayUtility\Arrays;
 
-class TokenMatcher extends AbstractMatcher
+class TokenMatcher extends AbstractMatcher implements TermCollectionAware
 {
     const SUPPORTED_VALUE = TokenValue::class;
 
@@ -22,25 +23,20 @@ class TokenMatcher extends AbstractMatcher
 
     /**
      * @param mixed $value
-     * @param mixed $term
+     * @param TermCollection $terms
      * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
     protected function matchValue(
         $value,
-        $term,
+        $terms,
         HighlighterInterface $highlighter,
         &$highlighted,
         int &$score
     ): void {
         foreach ($value as $key => $token) {
-            if (
-                $token === $term ||
-                $this->isIgnoreCase() &&
-                is_string($term) &&
-                mb_strtolower($token) == mb_strtolower($term)
-            ) {
+            if (in_array($this->isIgnoreCase() ? mb_strtolower($token) : $token, $terms->getArrayCopy())) {
                 $highlighted[$key] = $highlighter->highlight($token);
                 $score++;
             }
@@ -51,7 +47,7 @@ class TokenMatcher extends AbstractMatcher
      * @param TermCollection $termCollection
      * @return TermCollection
      */
-    protected function processTermCollection(TermCollection $termCollection): TermCollection
+    public function processTermCollection(TermCollection $termCollection): TermCollection
     {
         $termCollection->exchangeArray(
             Arrays::unique(

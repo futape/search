@@ -11,7 +11,6 @@ use Futape\Search\TermCollection;
 abstract class AbstractMatcher
 {
     const SUPPORTED_VALUE = '';
-    const SUPPORTS_TERM_COLLECTION = false;
 
     /**
      * @param AbstractValue $value
@@ -30,11 +29,33 @@ abstract class AbstractMatcher
             ->getHighlighted();
         $score = $value->getScore();
 
-        if (static::SUPPORTS_TERM_COLLECTION || !$terms instanceof TermCollection) {
+        if ($this instanceof TermCollectionAware) {
+            $terms = $this->processTermCollection(
+                $terms instanceof TermCollection ? $terms : new TermCollection([$terms])
+            );
+        }
+
+        if (!$terms instanceof TermCollection || $this instanceof TermCollectionAware) {
             $this->matchValue($value->getValue(), $terms, $value->getHighlighter(), $highlighted, $score);
         } else {
             foreach ($terms as $term) {
-                $this->matchValue($value->getValue(), $term, $value->getHighlighter(), $highlighted, $score);
+                $currentHighlighted = $highlighted;
+                $currentScore = $score;
+
+                $this->matchValue(
+                    $value->getValue(),
+                    $term,
+                    $value->getHighlighter(),
+                    $currentHighlighted,
+                    $currentScore
+                );
+
+                if ($currentScore != $score) {
+                    $score = $currentScore;
+                    $highlighted = $currentHighlighted;
+
+                    break;
+                }
             }
         }
 
@@ -59,12 +80,6 @@ abstract class AbstractMatcher
         &$highlighted,
         int &$score
     ): void;
-
-    /**
-     * @param TermCollection $termCollection
-     * @return TermCollection
-     */
-    abstract protected function processTermCollection(TermCollection $termCollection): TermCollection;
 
     /**
      * @param AbstractValue $value

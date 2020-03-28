@@ -6,10 +6,10 @@ namespace Futape\Search\Matcher\Fulltext;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
+use Futape\Search\Matcher\TermCollectionAware;
 use Futape\Search\TermCollection;
-use Futape\Utility\ArrayUtility\Arrays;
 
-class FulltextMatcher extends AbstractMatcher
+class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
 {
     const SUPPORTED_VALUE = FulltextValue::class;
     const SUPPORTS_TERM_COLLECTION = true;
@@ -101,54 +101,45 @@ class FulltextMatcher extends AbstractMatcher
      * @param TermCollection $termCollection
      * @return TermCollection
      */
-    protected function processTermCollection(TermCollection $termCollection): TermCollection
+    public function processTermCollection(TermCollection $termCollection): TermCollection
     {
-        $termCollection->exchangeArray(
-            Arrays::unique(
-                array_filter(
-                    $termCollection->getArrayCopy(),
-                    function ($val) {
-                        return is_string($val);
-                    }
-                ),
-                Arrays::UNIQUE_STRING | ($this->isIgnoreCase() ? Arrays::UNIQUE_LOWERCASE : 0)
-            )
-        );
+        $terms = [];
+
+        foreach ($termCollection as $term) {
+            if (!is_string($term)) {
+                continue;
+            }
+
+            if ($this->isIgnoreCase()) {
+                $term = mb_strtolower($term);
+            }
+            if (!$this->isLiteralSpaces()) {
+                $term = preg_replace('/\s+/', ' ', $term);
+            }
+
+            if (!in_array($term, $terms)) {
+                $terms[] = $term;
+            }
+        }
+
+        $termCollection->exchangeArray($terms);
 
         return $termCollection;
     }
 
     /**
      * @param mixed $value
-     * @param mixed $term
+     * @param TermCollection $terms
      * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
-    protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
+    protected function matchValue($value, $terms, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
-        if ($term instanceof TermCollection) {
-            $terms = $term->getArrayCopy();
-        } else {
-            $terms = [$term];
-        }
-
-        $terms = Arrays::unique(
-            array_filter(
-                $terms,
-                function ($val) {
-                    return is_string($val);
-                }
-            ),
-            Arrays::UNIQUE_STRING | ($this->isIgnoreCase() ? Arrays::UNIQUE_LOWERCASE : 0)
-        );
         $highlightAreas = [];
+        $termScores = [];
 
         foreach ($terms as $term) {
-            if (!is_string($term)) {
-                continue;
-            }
-
             $matches = [];
 
             preg_match_all(
@@ -167,7 +158,7 @@ class FulltextMatcher extends AbstractMatcher
 
             if (count($matches) > 0) {
                 $matchesNumber = count($matches);
-                $score += $matchesNumber;
+                $termScores[$term] = $matchesNumber;
 
 //            'Three words with two instances of one word in term (word boundary)' => ['foo_bar bar bam', 'foo_bar bar', 4],
 //            // 1 + 1*1 + 2*1
@@ -185,15 +176,18 @@ class FulltextMatcher extends AbstractMatcher
 //             *      + When searching for the single token in whole search string, the count may likely be higher
 //             *    + ~Only required for unique tokens in term~ Do for *every* token in term - even duplicated
 //             *    + Value added per token must not be greater than possible when searching for that single token the
-//             *      search string => not possible if implements as described above
+//             *      search string => not possible if implemented as described above
 //             *
 //             * Whenever adding per token, do so only if more than 1 token exists in term
 //             */
 //            'Three words (word boundary)' => ['foo_bar baz bam', 'foo_bar baz', 3],
 //            // 1 + 1*1 + 1*1
-                $termTokensNumber = count($this->getTokens($term));
-                if ($termTokensNumber > 1) {
-                    $score += $termTokensNumber * $matchesNumber;
+                $termTokens = $this->getTokens($term);
+
+                if (count($termTokens) > 1) {
+                    foreach (array_count_values($termTokens) as $termToken => $termTokenNumber) {
+                        $termScores[$termToken] = max($termScores[$termToken] ?? 0, $termTokenNumber * $matchesNumber);
+                    }
                 }
 
                 foreach ($matches as $match) {
@@ -202,6 +196,8 @@ class FulltextMatcher extends AbstractMatcher
                 }
             }
         }
+
+        $score += array_sum($termScores);
 
         if (count($highlightAreas) > 0) {
             usort(
@@ -271,6 +267,8 @@ class FulltextMatcher extends AbstractMatcher
     /**
      * @param string $value
      * @return string
+     *
+     * @todo Consider trimming the term if literal spaces is false
      */
     protected function getPattern(string $value): string
     {
