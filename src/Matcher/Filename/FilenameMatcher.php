@@ -9,6 +9,10 @@ use Futape\Search\Matcher\AbstractMatcher;
 use Futape\Utility\Filesystem\Paths;
 use Futape\Utility\String\Strings;
 
+/**
+ * @todo Rename to UriFilename/-PathMatcher (or similar) since it only supports paths below document root and
+ *       already highlights as URI paths
+ */
 class FilenameMatcher extends AbstractMatcher
 {
     const SUPPORTED_VALUE = FilenameValue::class;
@@ -22,6 +26,10 @@ class FilenameMatcher extends AbstractMatcher
      */
     protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
+        if (!is_string($term)) {
+            return;
+        }
+
         $pathinfo = pathinfo($value);
 
         if ($pathinfo['basename'] === $term) {
@@ -34,7 +42,7 @@ class FilenameMatcher extends AbstractMatcher
             !is_dir($value) &&
             $pathinfo['filename'] === $term
         ) {
-            // Match against filename (ignored if value ends with a slash, indicating a directory)
+            // Match against filename (ignored if value ends with a slash, indicating a directory, or points to a one)
             $highlighted = $highlighter->highlight($pathinfo['filename']);
             if ($pathinfo['extension'] !== null) {
                 $highlighted .= $highlighter->lowlight('.' . $pathinfo['extension']);

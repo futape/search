@@ -8,3 +8,4 @@
       in AbstractMatcher::match() from the value object and pass as argument to AbstractMatcher::matchValue() (or make
       it accessible there in another way)
 + [ ] Consider default implementation of AbstractValue::resetHighlighted() in AbstractArrayValue and AbstractStringValue
++ [ ] Implement functionality in `Index` to pass a search term only to specified matchers
