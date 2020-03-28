@@ -5,8 +5,10 @@ namespace Futape\Search\Tests\Unit\Matcher\Filename;
 
 
 use Futape\Search\Highlighter\HtmlHighlighter;
+use Futape\Search\Highlighter\PlainHighlighter;
 use Futape\Search\Matcher\Filename\FilenameMatcher;
 use Futape\Search\Matcher\Filename\FilenameValue;
+use Futape\Search\TermCollection;
 use Futape\Utility\Filesystem\Files;
 use Futape\Utility\Filesystem\Paths;
 use PHPUnit\Framework\TestCase;
@@ -91,5 +93,21 @@ class FilenameMatcherTest extends TestCase
         $matcher->match($value, 'b&r');
         $this->assertEquals('/f&amp;o/b&amp;r.txt', $value->getHighlighted());
         $this->assertEquals(0, $value->getScore());
+    }
+
+    /**
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\Matcher\Filename\FilenameValue
+     * @uses \Futape\Search\TermCollection
+     */
+    public function testMatchTermCollection()
+    {
+        $matcher = new FilenameMatcher();
+        $value = (new FilenameValue(self::$documentRoot . 'foo/bar.txt'))
+            ->setHighlighter(new PlainHighlighter());
+
+        $matcher->match($value, new TermCollection(['foo.txt', 'bar.txt', 'baz.txt']));
+        $this->assertEquals('/foo/**bar.txt**', $value->getHighlighted());
+        $this->assertEquals(1, $value->getScore());
     }
 }

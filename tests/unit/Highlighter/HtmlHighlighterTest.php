@@ -4,6 +4,7 @@
 namespace Futape\Search\Tests\Unit\Highlighter;
 
 
+use Futape\Search\Highlighter\Exception\HighlighterException;
 use Futape\Search\Highlighter\HtmlHighlighter;
 use PHPUnit\Framework\TestCase;
 
@@ -22,5 +23,13 @@ class HtmlHighlighterTest extends TestCase
     {
         $this->assertEquals('fo&lt;&gt;bar', (new HtmlHighlighter())->lowlight('fo<>bar'));
         $this->assertSame('142', (new HtmlHighlighter())->lowlight(142));
+    }
+
+    public function testHighlightAreas()
+    {
+        $this->assertEquals('<mark>fo&lt;</mark>&gt;bar', (new HtmlHighlighter())->highlightAreas('fo<>bar', [0, -3]));
+
+        $this->expectException(HighlighterException::class);
+        (new HtmlHighlighter())->highlightAreas('fo<>bar', [0, 3]);
     }
 }

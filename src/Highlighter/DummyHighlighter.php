@@ -23,4 +23,14 @@ class DummyHighlighter implements HighlighterInterface
     {
         return $value;
     }
+
+    /**
+     * @param string $value
+     * @param array $areas
+     * @return mixed
+     */
+    public function highlightAreas(string $value, array $areas)
+    {
+        return $value;
+    }
 }

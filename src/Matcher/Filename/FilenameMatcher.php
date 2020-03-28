@@ -30,11 +30,18 @@ class FilenameMatcher extends AbstractMatcher
             return;
         }
 
-        $pathinfo = pathinfo($value);
+        $path = Paths::toUrlPath($value, false, false);
+
+        if ($path == '/') {
+            return;
+        }
+
+        $basenamePosition = mb_strrpos($path, '/') + 1;
+        $pathinfo = pathinfo($path);
 
         if ($pathinfo['basename'] == $term) {
             // Match against last path segment (directory or file)
-            $highlighted = $highlighter->highlight($pathinfo['basename']);
+            $highlightArea = [$basenamePosition, -($basenamePosition + mb_strlen($pathinfo['basename']))];
             $score++;
         } elseif (
             $pathinfo['filename'] != '' &&
@@ -42,17 +49,13 @@ class FilenameMatcher extends AbstractMatcher
             !is_dir($value) &&
             $pathinfo['filename'] == $term
         ) {
-            // Match against filename (ignored if value ends with a slash, indicating a directory, or points to a one)
-            $highlighted = $highlighter->highlight($pathinfo['filename']);
-            if ($pathinfo['extension'] !== null) {
-                $highlighted .= $highlighter->lowlight('.' . $pathinfo['extension']);
-            }
+            // Match against filename (ignored if value ends with a slash, indicating a directory, or points to one)
+            $highlightArea = [$basenamePosition, -($basenamePosition + mb_strlen($pathinfo['filename']))];
             $score++;
         } else {
             return;
         }
 
-        $highlighted = $highlighter->lowlight(rtrim(Paths::toUrlPath($pathinfo['dirname'], false, false), '/') . '/') .
-            $highlighted;
+        $highlighted = $highlighter->highlightAreas($path, $highlightArea);
     }
 }

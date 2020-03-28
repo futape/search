@@ -13,7 +13,7 @@ class HtmlHighlighter extends AbstractStringHighlighter
     protected $closing = '</mark>';
 
     /**
-     * @param string $value
+     * @param mixed $value
      * @return string
      */
     public function highlight($value): string
@@ -23,7 +23,7 @@ class HtmlHighlighter extends AbstractStringHighlighter
 
     /**
      * @param mixed $value
-     * @return mixed
+     * @return string
      */
     public function lowlight($value): string
     {

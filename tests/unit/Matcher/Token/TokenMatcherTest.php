@@ -7,6 +7,7 @@ namespace Futape\Search\Tests\Unit\Matcher\Token;
 use Futape\Search\Highlighter\PlainHighlighter;
 use Futape\Search\Matcher\Token\TokenMatcher;
 use Futape\Search\Matcher\Token\TokenValue;
+use Futape\Search\TermCollection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -63,5 +64,21 @@ class TokenMatcherTest extends TestCase
         $matcher->match($value, 'foo');
         $this->assertEquals(['**FOO**', 'bar'], $value->getHighlighted());
         $this->assertEquals(1, $value->getScore());
+    }
+
+    /**
+     * @uses \Futape\Search\Highlighter\PlainHighlighter
+     * @uses \Futape\Search\Matcher\Token\TokenValue
+     * @uses \Futape\Search\TermCollection
+     */
+    public function testMatchTermCollection()
+    {
+        $matcher = new TokenMatcher();
+        $value = (new TokenValue(['foo', 'bar', 'baz', 'bar']))
+            ->setHighlighter(new PlainHighlighter());
+
+        $matcher->match($value, new TermCollection(['foo', 'bar']));
+        $this->assertEquals(['**foo**', '**bar**', 'baz', '**bar**'], $value->getHighlighted());
+        $this->assertEquals(3, $value->getScore());
     }
 }

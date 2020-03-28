@@ -190,8 +190,10 @@ class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
                 }
 
                 foreach ($matches as $match) {
-                    $highlightAreas[] = $match[0][1];
-                    $highlightAreas[] = -($match[0][1] + strlen($match[0][0]));
+                    $opening = mb_strlen(substr($value, 0, $match[0][1]));
+
+                    $highlightAreas[] = $opening;
+                    $highlightAreas[] = -($opening + mb_strlen($match[0][0]));
                 }
             }
         }
@@ -199,31 +201,7 @@ class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
         $score += array_sum($termScores);
 
         if (count($highlightAreas) > 0) {
-            usort(
-                $highlightAreas,
-                function ($a, $b) {
-                    if (abs($a) == abs($b)) {
-                        return $a < 0 ? -1 : 1;
-                    } else {
-                        return abs($a) - abs($b);
-                    }
-                }
-            );
-
-            $highlighted = '';
-            $pointer = 0;
-
-            foreach ($highlightAreas as $position) {
-                if ($position >= 0) {
-                    $highlighted .= $highlighter->lowlight(substr($value, $pointer, $position - $pointer));
-                } else {
-                    $highlighted .= $highlighter->highlight(substr($value, $pointer, abs($position) - $pointer));
-                }
-
-                $pointer = abs($position);
-            }
-
-            $highlighted .= $highlighter->lowlight(substr($value, $pointer));
+            $highlighted = $highlighter->highlightAreas($value, $highlightAreas);
         }
     }
 
