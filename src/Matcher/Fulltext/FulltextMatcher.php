@@ -6,8 +6,10 @@ namespace Futape\Search\Matcher\Fulltext;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\AbstractMatcher;
+use Futape\Search\Matcher\TermCollectionAware;
+use Futape\Search\TermCollection;
 
-class FulltextMatcher extends AbstractMatcher
+class FulltextMatcher extends AbstractMatcher implements TermCollectionAware
 {
     const SUPPORTED_VALUE = FulltextValue::class;
 
@@ -95,76 +97,101 @@ class FulltextMatcher extends AbstractMatcher
     }
 
     /**
+     * @param TermCollection $termCollection
+     * @return TermCollection
+     */
+    public function processTermCollection(TermCollection $termCollection): TermCollection
+    {
+        $terms = [];
+
+        foreach ($termCollection as $term) {
+            if (!is_string($term)) {
+                continue;
+            }
+
+            if ($this->isIgnoreCase()) {
+                $term = mb_strtolower($term);
+            }
+            if (!$this->isLiteralSpaces()) {
+                $term = preg_replace('/\s+/', ' ', $term);
+            }
+
+            if (!in_array($term, $terms)) {
+                $terms[] = $term;
+            }
+        }
+
+        $termCollection->exchangeArray($terms);
+
+        return $termCollection;
+    }
+
+    /**
      * @param mixed $value
-     * @param mixed $term
+     * @param TermCollection $terms
      * @param HighlighterInterface $highlighter
      * @param mixed $highlighted
      * @param int $score
      */
-    protected function matchValue($value, $term, HighlighterInterface $highlighter, &$highlighted, int &$score): void
+    protected function matchValue($value, $terms, HighlighterInterface $highlighter, &$highlighted, int &$score): void
     {
-        if (!is_string($term)) {
-            return;
-        }
-
         $highlightAreas = [];
-        $matches = [];
+        $termScores = [];
 
-        preg_match_all(
-            $this->getRegex($this->getPattern($term)),
-            $value,
-            $matches,
-            PREG_SET_ORDER | PREG_OFFSET_CAPTURE
-        );
+        foreach ($terms as $term) {
+            $matches = [];
 
-        $matches = array_filter(
-            $matches,
-            function ($match) {
-                return $match[0][0] != '';
-            }
-        );
+            preg_match_all(
+                $this->getRegex($this->getPattern($term)),
+                $value,
+                $matches,
+                PREG_SET_ORDER | PREG_OFFSET_CAPTURE
+            );
 
-        if (count($matches) > 0) {
-            $matchesNumber = count($matches);
-            $score += $matchesNumber;
-
-            $termTokensNumber = count($this->getTokens($term));
-            if ($termTokensNumber > 1) {
-                $score += $termTokensNumber * $matchesNumber;
-            }
-
-            foreach ($matches as $match) {
-                $highlightAreas[] = $match[0][1];
-                $highlightAreas[] = -($match[0][1] + strlen($match[0][0]));
-            }
-        }
-
-        if (count($highlightAreas) > 0) {
-            usort(
-                $highlightAreas,
-                function ($a, $b) {
-                    if (abs($a) == abs($b)) {
-                        return $a < 0 ? -1 : 1;
-                    } else {
-                        return abs($a) - abs($b);
-                    }
+            $matches = array_filter(
+                $matches,
+                function ($match) {
+                    return $match[0][0] != '';
                 }
             );
 
-            $highlighted = '';
-            $pointer = 0;
+            if (count($matches) > 0) {
+                $matchesNumber = count($matches);
+                $termScores[$term] = $matchesNumber;
 
-            foreach ($highlightAreas as $position) {
-                if ($position >= 0) {
-                    $highlighted .= $highlighter->lowlight(substr($value, $pointer, $position - $pointer));
-                } else {
-                    $highlighted .= $highlighter->highlight(substr($value, $pointer, abs($position) - $pointer));
+                /*
+                 * Express the complexity of the search term by adding the count of occurrences of the search term in
+                 * the value for each token in the search term.
+                 *
+                 * Be aware to not just add the score for that token since it may have already been counted by another
+                 * matched search term and the same occurrence in the value must not be counted multiple times.
+                 * When searching the whole value for a single token, the count may likely be higher than the count
+                 * of it in a context of the search term it is in.
+                 *
+                 * If the search term contains only 1 token, don't count that token since it has already been counted by
+                 * the whole search term.
+                 */
+                $termTokens = $this->getTokens($term);
+
+                if (count($termTokens) > 1) {
+                    foreach (array_count_values($termTokens) as $termToken => $termTokenNumber) {
+                        $termScores[$termToken] = max($termScores[$termToken] ?? 0, $termTokenNumber * $matchesNumber);
+                    }
                 }
 
-                $pointer = abs($position);
-            }
+                foreach ($matches as $match) {
+                    $opening = mb_strlen(substr($value, 0, $match[0][1]));
 
-            $highlighted .= $highlighter->lowlight(substr($value, $pointer));
+                    $highlightAreas[] = $opening;
+                    $highlightAreas[] = -($opening + mb_strlen($match[0][0]));
+                }
+            }
+        }
+
+        $score += array_sum($termScores);
+
+        if (count($highlightAreas) > 0) {
+            $highlighted = $highlighter->highlightAreas($value, $highlightAreas);
         }
     }
 

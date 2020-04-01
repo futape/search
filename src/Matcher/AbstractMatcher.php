@@ -6,6 +6,7 @@ namespace Futape\Search\Matcher;
 
 use Futape\Search\Highlighter\HighlighterInterface;
 use Futape\Search\Matcher\Exception\UnsupportedValueException;
+use Futape\Search\TermCollection;
 
 abstract class AbstractMatcher
 {
@@ -13,11 +14,11 @@ abstract class AbstractMatcher
 
     /**
      * @param AbstractValue $value
-     * @param mixed $term
+     * @param mixed $terms
      * @return self
      * @throws UnsupportedValueException
      */
-    public function match(AbstractValue $value, $term): self
+    public function match(AbstractValue $value, $terms): self
     {
         if (!$this->accept($value)) {
             throw new UnsupportedValueException($value, static::SUPPORTED_VALUE, 1577115322);
@@ -28,7 +29,35 @@ abstract class AbstractMatcher
             ->getHighlighted();
         $score = $value->getScore();
 
-        $this->matchValue($value->getValue(), $term, $value->getHighlighter(), $highlighted, $score);
+        if ($this instanceof TermCollectionAware) {
+            $terms = $this->processTermCollection(
+                $terms instanceof TermCollection ? $terms : new TermCollection([$terms])
+            );
+        }
+
+        if (!$terms instanceof TermCollection || $this instanceof TermCollectionAware) {
+            $this->matchValue($value->getValue(), $terms, $value->getHighlighter(), $highlighted, $score);
+        } else {
+            foreach ($terms as $term) {
+                $currentHighlighted = $highlighted;
+                $currentScore = $score;
+
+                $this->matchValue(
+                    $value->getValue(),
+                    $term,
+                    $value->getHighlighter(),
+                    $currentHighlighted,
+                    $currentScore
+                );
+
+                if ($currentScore != $score) {
+                    $score = $currentScore;
+                    $highlighted = $currentHighlighted;
+
+                    break;
+                }
+            }
+        }
 
         $value
             ->setHighlighted($highlighted)

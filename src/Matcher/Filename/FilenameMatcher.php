@@ -10,8 +10,9 @@ use Futape\Utility\Filesystem\Paths;
 use Futape\Utility\String\Strings;
 
 /**
- * @todo Rename to UriFilename/-PathMatcher (or similar) since it only supports paths below document root and
- *       already highlights as URI paths
+ * @todo Consider renaming to UriFilename/-PathMatcher (or similar) since it only supports paths below document root and
+ *       already highlights as URI paths. Maybe remove URI behaviour and handle any paths and return them normalized or
+ *       something.
  */
 class FilenameMatcher extends AbstractMatcher
 {
@@ -30,29 +31,32 @@ class FilenameMatcher extends AbstractMatcher
             return;
         }
 
-        $pathinfo = pathinfo($value);
+        $path = Paths::toUrlPath($value, false, false);
 
-        if ($pathinfo['basename'] === $term) {
+        if ($path == '/') {
+            return;
+        }
+
+        $basenamePosition = mb_strrpos($path, '/') + 1;
+        $pathinfo = pathinfo($path);
+
+        if ($pathinfo['basename'] == $term) {
             // Match against last path segment (directory or file)
-            $highlighted = $highlighter->highlight($pathinfo['basename']);
+            $highlightArea = [$basenamePosition, -($basenamePosition + mb_strlen($pathinfo['basename']))];
             $score++;
         } elseif (
             $pathinfo['filename'] != '' &&
             !Strings::endsWith($value, '/') &&
             !is_dir($value) &&
-            $pathinfo['filename'] === $term
+            $pathinfo['filename'] == $term
         ) {
-            // Match against filename (ignored if value ends with a slash, indicating a directory, or points to a one)
-            $highlighted = $highlighter->highlight($pathinfo['filename']);
-            if ($pathinfo['extension'] !== null) {
-                $highlighted .= $highlighter->lowlight('.' . $pathinfo['extension']);
-            }
+            // Match against filename (ignored if value ends with a slash, indicating a directory, or points to one)
+            $highlightArea = [$basenamePosition, -($basenamePosition + mb_strlen($pathinfo['filename']))];
             $score++;
         } else {
             return;
         }
 
-        $highlighted = $highlighter->lowlight(rtrim(Paths::toUrlPath($pathinfo['dirname'], false, false), '/') . '/') .
-            $highlighted;
+        $highlighted = $highlighter->highlightAreas($path, $highlightArea);
     }
 }

@@ -6,12 +6,9 @@ namespace Futape\Search\Tests\Unit\Matcher\Fulltext;
 
 use Futape\Search\Highlighter\HtmlHighlighter;
 use Futape\Search\Highlighter\PlainHighlighter;
-use Futape\Search\Matcher\Filename\FilenameMatcher;
-use Futape\Search\Matcher\Filename\FilenameValue;
 use Futape\Search\Matcher\Fulltext\FulltextMatcher;
 use Futape\Search\Matcher\Fulltext\FulltextValue;
-use Futape\Utility\Filesystem\Files;
-use Futape\Utility\Filesystem\Paths;
+use Futape\Search\TermCollection;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -232,5 +229,24 @@ class FulltextMatcherTest extends TestCase
         $matcher->match($value, ' Bar ');
         $this->assertEquals('Foo** Bar **Baz', $value->getHighlighted());
         $this->assertEquals(1, $value->getScore());
+    }
+
+    /**
+     * @uses \Futape\Search\Highlighter\HtmlHighlighter
+     * @uses \Futape\Search\Matcher\Fulltext\FulltextValue
+     * @uses \Futape\Search\TermCollection
+     */
+    public function testMatchTermCollection()
+    {
+        $matcher = new FulltextMatcher();
+        $value = (new FulltextValue('Foo Bar Bam Bar Baz Bar Bar'))
+            ->setHighlighter(new HtmlHighlighter());
+
+        $matcher->match($value, new TermCollection(['Foo Bar Bam Bar', 'foo  bar   bam bar', 'Bar']));
+        $this->assertEquals(
+            '<mark>Foo <mark>Bar</mark> Bam <mark>Bar</mark></mark> Baz <mark>Bar</mark> <mark>Bar</mark>',
+            $value->getHighlighted()
+        );
+        $this->assertEquals(7, $value->getScore());
     }
 }
