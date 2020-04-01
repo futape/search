@@ -4,6 +4,7 @@
 namespace Futape\Search\Tests\Unit\Highlighter;
 
 
+use Futape\Search\Highlighter\Exception\HighlighterException;
 use Futape\Search\Highlighter\PlainHighlighter;
 use PHPUnit\Framework\TestCase;
 
@@ -22,5 +23,13 @@ class PlainHighlighterTest extends TestCase
     {
         $this->assertEquals('foobar', (new PlainHighlighter())->lowlight('foobar'));
         $this->assertSame('142', (new PlainHighlighter())->lowlight(142));
+    }
+
+    public function testHighlightAreas()
+    {
+        $this->assertEquals('**foo**bar', (new PlainHighlighter())->highlightAreas('foobar', [0, -3]));
+
+        $this->expectException(HighlighterException::class);
+        (new PlainHighlighter())->highlightAreas('foobar', [0, 3]);
     }
 }

@@ -123,9 +123,9 @@ class EqualsValue extends AbstractValue
 Highlighters are used to highlight matching values, as well as for lowlighting values (i.e. process the value
 according to the highlighter's logic and character but don't highlight it).  
 Technically a highlighter may highlight any value, being it a scalar value like a string or a float, or something like
-an object, it just needs to know how to do it.  
-A highlighter doesn't know about the type of the value it should handle and every highlighter behaves differently and
-implements its own way of highlighting values and has a different return value.
+an object. It doesn't know about the type of the value it should handle and every highlighter behaves differently and
+implements its own way of highlighting values and has a different return value. The only exception from this rule is the
+`HighlighterInterface::highlightAreas()` method which always expects a string argument.  
 A string highlighter for example tries to highlight the value as a string and fails if the value can't be converted to
 one. Other highlighters may not convert the value at all and just wrap them into a special "highlighted" object.  
 There are a few predefined highlighters as well as an abstract one and an interface to built you own
@@ -166,6 +166,9 @@ class YellHighlighter extends AbstractStringHighlighter
     protected $closing = '!!!';
 }
 ```
+
+When writing your own `HighlighterInterface::highlightAreas()` implementation, you may want to use the
+`HighlighterHelper::processAreas()` method which normalizes and validates the areas array.
 
 ### Indexed Objects (Searchables)
 
